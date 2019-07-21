@@ -37,6 +37,7 @@ pipeline {
     stage('Run postman') {
       steps {
         sh '''copy c:\\Users\\guyari\\Desktop\\postman\\environmentYodlee.json .
+
 newman run collectionYodlee.json -e environmentYodlee.json'''
       }
     }
