@@ -24,12 +24,12 @@ pipeline {
       parallel {
         stage('Deploy Server') {
           steps {
-            sleep 5
+            sleep 1
           }
         }
         stage('Upload Mobile Apps') {
           steps {
-            sleep 3
+            sleep 1
           }
         }
       }
@@ -44,9 +44,8 @@ pipeline {
         }
         stage('Appium') {
           steps {
-            sleep 4
             dir(path: 'C:\\Users\\guyar\\ws1\\PostmanPipeline') {
-              sh 'gradlew --info test --rerun-tasks'
+              sh './gradlew --info test --rerun-tasks'
             }
 
           }
