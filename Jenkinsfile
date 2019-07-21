@@ -37,7 +37,7 @@ pipeline {
     stage('Run postman') {
       steps {
         powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .'
-        powershell 'newman run collectionYodlee.json -e environmentYodlee.json'
+        powershell 'newman run collectionYodlee.json -e environmentYodlee.json --no-color '
       }
     }
   }
