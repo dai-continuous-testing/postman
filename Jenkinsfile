@@ -5,17 +5,17 @@ pipeline {
       parallel {
         stage('Build Server') {
           steps {
-            sleep 10
+            sleep 3
           }
         }
         stage('Build Android App') {
           steps {
-            sleep 10
+            sleep 3
           }
         }
         stage('Build iOS App') {
           steps {
-            sleep 7
+            sleep 3
           }
         }
       }
@@ -29,7 +29,7 @@ pipeline {
         }
         stage('Upload Mobile Apps') {
           steps {
-            sleep 10
+            sleep 3
           }
         }
       }
