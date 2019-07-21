@@ -44,10 +44,7 @@ pipeline {
         }
         stage('Appium') {
           steps {
-            dir(path: 'C:\\Users\\guyar\\ws1\\PostmanPipeline') {
-              sh './gradlew --info test --rerun-tasks'
-            }
-
+            sh './gradlew --info test --rerun-tasks'
           }
         }
       }
