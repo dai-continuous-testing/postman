@@ -35,9 +35,18 @@ pipeline {
       }
     }
     stage('Run postman') {
-      steps {
-        powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .'
-        powershell 'newman run collectionYodlee.json -e environmentYodlee.json'
+      parallel {
+        stage('Run postman') {
+          steps {
+            powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .'
+            powershell 'newman run collectionYodlee.json -e environmentYodlee.json'
+          }
+        }
+        stage('Appium') {
+          steps {
+            sleep 4
+          }
+        }
       }
     }
   }
