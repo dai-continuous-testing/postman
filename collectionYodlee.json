@@ -1,0 +1,750 @@
+{
+	"info": {
+		"_postman_id": "96cb3e89-8a71-4877-8f61-c1666ebbbaa0",
+		"name": "Yodlee API Getting Started",
+		"description": "Getting Started helps you quickly get an understanding of the Yodlee API.  \n  \nBefore we start, some keywords that you should know:  \n  \n**cobrand:** You/your application.  \n**user:** End user of your application.  \n**jwt-token:** A session token generated using your private key. This will be used to authenticate and authorize API calls   \n**FastLink:** A Yodlee hosted widget that can be embedded into your website/app and allows users to search and connect their financial institutions.  \n\n# Prerequisites\n* [Register](https://developer.yodlee.com/user/register) for a developer account.  \n* Get your cobrand credentials and user details from your [API dashboard](https://developer.yodlee.com/api-dashboard).  \n* You can use any of the 5 pre-registered test users or create your own users; details are present at the bottom of the API-Dashboard page.\n* Please note that [user\\register](https://developer.yodlee.com/apidocs/index.php#!/user/register) API is restricted to the sandbox environment.\n\n\n# Using the API calls\nAll calls required below Postman variables to be set:\n  \n**host** The url for your environment. For a sandbox account, this would be https://sandbox.api.yodlee.com/ysl/  \n\n**privateKey** For Sandbox this would the privateKey that you download from the [dashboard](https://developer.yodlee.com/api-dashboard)  \n\n**issuerId** This would the issuerId (aka API Key) assigned to you. For Sandbox this is directly available to you from the dashboard privateKey that you download from the [dashboard](https://developer.yodlee.com/api-dashboard). For development and production environments, the issuerId is generated when you upload your public key to our [dashboard](https://developer.yodlee.com/api-dashboard).  \n\n**userName** For Sandbox you can copy&paste one of the test users from the [dashboard](https://developer.yodlee.com/api-dashboard).  \n\n**token** An Authorization Bearer token that is passed to each request. For this Postman collection, it is generated when you make the `Generate Token` call. When you start building your app, please visit [Getting Started](https://developer.yodlee.com/docs/api/1.1/getting-started#generate-token-sandbox) for steps to generate a token. This variable is auto-generated, you dont need to set any value for this.\n\n# Generating a Token\nTo generate an Authorization Token in your app. Please follow the steps described [here](https://developer.yodlee.com/docs/api/1.1/getting-started#generate-token-sandbox)\n\n# Linking a Bank Account\nTo link a bank account, please follow the steps described [here](https://developer.yodlee.com/docs/api/1.1/getting-started#fastlink)\n\n<b>Using personal data</b>  \nTo use a personal account, enter the bank you use and log in with your credentials.<br/>\n\n<b>Using dummy data</b>  \nTo link a dummy account, go to the <a href=\"https://dag2.yodlee.com/dag/index.do\">Dummy Account Generator site</a> (DAG). Click <b>Create new catalog</b> and create a dummy account. You will be taken to a page with a table containing data. You will see a username and password (e.g., helloworld.site16441.1 and site16441.1). To add the account go to FastLink and search for Dag Site. Click <b>Dag Site</b> and enter your DAG username/password.\n\n# Endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Generate Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9f341694-82cb-49e8-b42e-79f841574917",
+						"exec": [
+							"var navigator = {}; //fake a navigator object for the lib",
+							"var window = {}; //fake a window object for the lib",
+							" ",
+							"eval(pm.globals.get(\"jsrsasign-js\")); //import jsrsasign lib",
+							" ",
+							"var jws = new KJUR.jws.JWS();",
+							"var payload = {};",
+							"var header =  {};",
+							"var token;",
+							" ",
+							"var issuerId = pm.environment.get(\"issuerId\");",
+							"var privateKey = pm.environment.get(\"privateKey\");",
+							"var userName = pm.environment.get(\"userName\");",
+							" ",
+							"var seconds =  Math.floor(Date.now() / 1000);//(new Date).getTime();",
+							" ",
+							"payload.iss = issuerId;",
+							"payload.iat = seconds;",
+							"payload.exp = seconds + 900;",
+							"payload.sub = userName;",
+							" ",
+							"console.log(\"payload.iat\" + payload.iat);",
+							"console.log(\"payload.exp\" + payload.exp);",
+							"console.log(\"Payload: \"+ JSON.stringify(payload));",
+							" ",
+							" ",
+							"header.alg = \"RS512\";",
+							"header.typ = \"JWT\";",
+							" ",
+							"try {",
+							"    pKey = KEYUTIL.getKey(privateKey);",
+							"    token = KJUR.jws.JWS.sign(\"RS512\", JSON.stringify(header), JSON.stringify(payload), pKey);",
+							"    console.log(\"Generated Token: \", token);",
+							"    pm.environment.set(\"token\",token);",
+							"",
+							"} catch (ex) {",
+							"  console.log(\"Error: \" + ex);",
+							"}",
+							"    ",
+							"// // add a test to make sure token has generated",
+							"// pm.test(\"Token generated\", function () {",
+							"//     pm.expect(pm.environment.get(\"token\") !== \"\").is.true;",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4175e06a-f863-4d6f-9a49-080efefd817e",
+						"exec": [
+							"if (!pm.globals.get(\"jsrsasign-js\")) {",
+							"    pm.sendRequest(\"https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/8.0.12/jsrsasign-all-min.js\", function(err, response) {",
+							"        if (err) {",
+							"            console.log(err);",
+							"        } else {",
+							"                console.log(response);",
+							"            pm.globals.set(\"jsrsasign-js\", response.text());",
+							"        }",
+							"    })",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://8244c0d7-2407-48b0-ad3e-6279b9cebcaa.mock.pstmn.io/do-nothing",
+					"protocol": "https",
+					"host": [
+						"8244c0d7-2407-48b0-ad3e-6279b9cebcaa",
+						"mock",
+						"pstmn",
+						"io"
+					],
+					"path": [
+						"do-nothing"
+					]
+				},
+				"description": "This step executes the pre-request script to generate a token for you.\nCall it for the first time before you start and whenever your token expires.\nNote: Please update your issuerId, privateKey, and userName in the environment section before you make this API call."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Providers",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c3950d77-c1a7-4482-a9b5-11de9f34d5c1",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1530e1bf-4c77-416b-b013-0004b7f1b277",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "1.1"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}providers?name=KeyBank&top=4",
+					"host": [
+						"{{host}}providers"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "KeyBank"
+						},
+						{
+							"key": "top",
+							"value": "4"
+						}
+					]
+				},
+				"description": "Get the list of Banks and Financial Instutitions available in your environment."
+			},
+			"response": [
+				{
+					"name": "Get Providers",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Api-Version",
+								"value": "1.1"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}providers?name=KeyBank&top=4",
+							"host": [
+								"{{host}}providers"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "KeyBank"
+								},
+								{
+									"key": "top",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": ""
+				}
+			]
+		},
+		{
+			"name": "Get Accounts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c1011a92-2561-4edf-8595-faafb97bde82",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6cb69ca2-9a30-4f90-b4b4-2e34038de4b2",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": "Content-Type has to be application/json for all requests and irrespective of the environment."
+					},
+					{
+						"key": "Api-Version",
+						"value": "1.1",
+						"description": "Api-Version has to be 1.1 for all requests and irrespective of the environment."
+					}
+				],
+				"url": {
+					"raw": "{{host}}accounts?",
+					"host": [
+						"{{host}}accounts"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "ACTIVE",
+							"description": "ACTIVE/INACTIVE/TO_BE_CLOSED/CLOSED",
+							"disabled": true
+						},
+						{
+							"key": "container",
+							"value": "bank",
+							"description": "bank/creditCard/investment/insurance/loan/reward/bill/realEstate/otherAssets/otherLiabilities  ",
+							"disabled": true
+						},
+						{
+							"key": "accountId",
+							"value": "1234",
+							"description": "comma separated accountIds",
+							"disabled": true
+						},
+						{
+							"key": "accountReconType",
+							"value": "",
+							"description": "UNRECONCILED (Default value), RECONCILED  ",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Get a user's accounts. If the response is blank, no accounts have been linked. You can use FastLink to link accounts. See the <b>linking financial data</b> tab for details."
+			},
+			"response": [
+				{
+					"name": "Get Accounts",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Api-Version",
+								"value": "1.1"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/accounts?",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"accounts"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": null,
+									"description": "ACTIVE/INACTIVE/TO_BE_CLOSED/CLOSED",
+									"disabled": true
+								},
+								{
+									"key": "container",
+									"value": null,
+									"description": "bank/creditCard/investment/insurance/loan/reward/bill/realEstate/otherAssets/otherLiabilities  ",
+									"disabled": true
+								},
+								{
+									"key": "providerAccountId",
+									"value": null,
+									"description": "provider account id  ",
+									"disabled": true
+								},
+								{
+									"key": "accountId",
+									"value": null,
+									"description": "comma separated accountIds",
+									"disabled": true
+								},
+								{
+									"key": "accountReconType",
+									"value": null,
+									"description": "UNRECONCILED (Default value), RECONCILED  ",
+									"disabled": true
+								},
+								{
+									"key": "include",
+									"value": null,
+									"description": "profile, holder, fullAccountNumber",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Accept-Charset",
+							"value": "big5, big5-hkscs, cesu-8, euc-jp, euc-kr, gb18030, gb2312, gbk, ibm-thai, ibm00858, ibm01140, ibm01141, ibm01142, ibm01143, ibm01144, ibm01145, ibm01146, ibm01147, ibm01148, ibm01149, ibm037, ibm1026, ibm1047, ibm273, ibm277, ibm278, ibm280, ibm284, ibm285, ibm290, ibm297, ibm420, ibm424, ibm437, ibm500, ibm775, ibm850, ibm852, ibm855, ibm857, ibm860, ibm861, ibm862, ibm863, ibm864, ibm865, ibm866, ibm868, ibm869, ibm870, ibm871, ibm918, iso-2022-cn, iso-2022-jp, iso-2022-jp-2, iso-2022-kr, iso-8859-1, iso-8859-13, iso-8859-15, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, jis_x0201, jis_x0212-1990, koi8-r, koi8-u, shift_jis, tis-620, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-32be, utf-32le, utf-8, windows-1250, windows-1251, windows-1252, windows-1253, windows-1254, windows-1255, windows-1256, windows-1257, windows-1258, windows-31j, x-big5-hkscs-2001, x-big5-solaris, x-compound_text, x-euc-jp-linux, x-euc-tw, x-eucjp-open, x-ibm1006, x-ibm1025, x-ibm1046, x-ibm1097, x-ibm1098, x-ibm1112, x-ibm1122, x-ibm1123, x-ibm1124, x-ibm1166, x-ibm1364, x-ibm1381, x-ibm1383, x-ibm300, x-ibm33722, x-ibm737, x-ibm833, x-ibm834, x-ibm856, x-ibm874, x-ibm875, x-ibm921, x-ibm922, x-ibm930, x-ibm933, x-ibm935, x-ibm937, x-ibm939, x-ibm942, x-ibm942c, x-ibm943, x-ibm943c, x-ibm948, x-ibm949, x-ibm949c, x-ibm950, x-ibm964, x-ibm970, x-iscii91, x-iso-2022-cn-cns, x-iso-2022-cn-gb, x-iso-8859-11, x-jis0208, x-jisautodetect, x-johab, x-macarabic, x-maccentraleurope, x-maccroatian, x-maccyrillic, x-macdingbat, x-macgreek, x-machebrew, x-maciceland, x-macroman, x-macromania, x-macsymbol, x-macthai, x-macturkish, x-macukraine, x-ms932_0213, x-ms950-hkscs, x-ms950-hkscs-xp, x-mswin-936, x-pck, x-sjis_0213, x-utf-16le-bom, x-utf-32be-bom, x-utf-32le-bom, x-windows-50220, x-windows-50221, x-windows-874, x-windows-949, x-windows-950, x-windows-iso2022jp",
+							"name": "Accept-Charset",
+							"description": "Custom header"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Length",
+							"value": "503",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json;charset=UTF-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 30 May 2018 22:26:10 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "yodlee-ref-id",
+							"value": "x1527719170640e3Q31D000000NLGYp",
+							"name": "yodlee-ref-id",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Invalid Date",
+							"httpOnly": false,
+							"domain": "yodlee.com",
+							"path": "/",
+							"secure": false,
+							"value": "WMPRZHscQWJsMu0jp5lEDBld/FoAAAAAGUOp/A36oel8YIYspWFQ8w==",
+							"key": "incap_ses_884_1070612"
+						},
+						{
+							"expires": "Invalid Date",
+							"httpOnly": false,
+							"domain": "yodlee.com",
+							"path": "/",
+							"secure": false,
+							"value": "SW9+hlNJSXiz1PkdNqeVzRhd/FoAAAAAQUIPAAAAAABwOgNsjIPCvyxrV3b9RxMs",
+							"key": "visid_incap_1070612"
+						},
+						{
+							"expires": "Invalid Date",
+							"httpOnly": false,
+							"domain": "yodlee.com",
+							"path": "/",
+							"secure": false,
+							"value": "dHf3UUt5DHYy30fhpc7sBgwdD1sAAAAA7h6cXLi/ZuCy5U84GvDQ7w==",
+							"key": "incap_ses_499_1070612"
+						}
+					],
+					"body": "{\"account\":[{\"includeInNetWorth\":true,\"accountName\":\"BNP Account\",\"accountType\":\"BROKERAGE_CASH\",\"isManual\":true,\"memo\":\"This is an investment account\",\"accountNumber\":\"1233\",\"accountStatus\":\"ACTIVE\",\"lastUpdated\":\"2018-05-30T22:24:01Z\",\"isAsset\":true,\"createdDate\":\"2018-05-30T22:24:01Z\",\"balance\":{\"amount\":84699,\"currency\":\"USD\"},\"aggregationSource\":\"USER\",\"providerId\":\"7634\",\"providerAccountId\":18377688,\"CONTAINER\":\"investment\",\"nickname\":\"Flood Cash\",\"id\":37252300,\"providerName\":\"Custom Bank\"}]}"
+				}
+			]
+		},
+		{
+			"name": "Get Transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d1d26672-8164-44da-bf74-74b90d6ed0d7",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var data = JSON.parse(responseBody);",
+							"",
+							"if (responseCode.code == 200) {",
+							"    console.log(\"Get Transactions successful.\");",
+							"} else if (data.errorMessage == \"Authorization header missing\") {",
+							"    console.log(\"You seem to be missing your cobrand session! One of the headers should be 'Authorization':'{cobSession={{cobSession}},userSession={{userSession}}}'!\");",
+							"} else if (data.errorMessage == \"Resource not found\") {",
+							"    console.log(\"You have an invalid URL!\");",
+							"} else if (data.errorMessage == \"Invalid token in authorization header\") {",
+							"    console.log(\"You seem to have an invalid cobrand or user token! Refresh them by logging in again!\");",
+							"} else {",
+							"    console.log(\"Error! \" + data.errorMessage + \"!\");",
+							"}",
+							"if (responseBody == \"{}\") {",
+							"    console.log(\"You seem to have an empty response! Make sure you have data linked to the user, and check the parameters!\");",
+							"}",
+							"",
+							"/*",
+							"FASTLINK:",
+							"<form action=\"https://node.developer.yodlee.com/authenticate/restserver/\" method=\"POST\">",
+							"  <input type=\"text\" name=\"app\" value=\"10003600\" />",
+							"  <input type=\"text\" name=\"rsession\" />",
+							"  <input type=\"text\" name=\"token\" />",
+							"  <input type=\"text\" name=\"redirectReq\" value=\"true\"/>",
+							"  <input type=\"submit\" name=\"submit\" />",
+							"</form>",
+							"*/",
+							"",
+							"// terminate a collection run",
+							"postman.setNextRequest(null);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "84e73900-4663-4497-9701-3baadeb2c322",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": "Content-Type has to be application/json for all requests and irrespective of the environment."
+					},
+					{
+						"key": "Api-Version",
+						"value": "1.1",
+						"description": "Api-Version has to be 1.1 for all requests and irrespective of the environment."
+					}
+				],
+				"url": {
+					"raw": "{{host}}transactions?fromDate=2019-01-01",
+					"host": [
+						"{{host}}transactions"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "2019-01-01",
+							"description": "transaction from date (YYYY-MM-DD)"
+						},
+						{
+							"key": "container",
+							"value": "bank",
+							"description": "bank/creditCard/investment/insurance/loan",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Get Transactions for the accounts that you have linked. If you get empty response, try increasing the duration and also remove any filters that you might be passing."
+			},
+			"response": [
+				{
+					"name": "Get Transactions",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Api-Version",
+								"value": "1.1"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/transactions?fromDate=2013-01-01",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2013-01-01",
+									"description": "transaction from date (YYYY-MM-DD)"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Accept-Charset",
+							"value": "big5, big5-hkscs, cesu-8, euc-jp, euc-kr, gb18030, gb2312, gbk, ibm-thai, ibm00858, ibm01140, ibm01141, ibm01142, ibm01143, ibm01144, ibm01145, ibm01146, ibm01147, ibm01148, ibm01149, ibm037, ibm1026, ibm1047, ibm273, ibm277, ibm278, ibm280, ibm284, ibm285, ibm290, ibm297, ibm420, ibm424, ibm437, ibm500, ibm775, ibm850, ibm852, ibm855, ibm857, ibm860, ibm861, ibm862, ibm863, ibm864, ibm865, ibm866, ibm868, ibm869, ibm870, ibm871, ibm918, iso-2022-cn, iso-2022-jp, iso-2022-jp-2, iso-2022-kr, iso-8859-1, iso-8859-13, iso-8859-15, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, jis_x0201, jis_x0212-1990, koi8-r, koi8-u, shift_jis, tis-620, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-32be, utf-32le, utf-8, windows-1250, windows-1251, windows-1252, windows-1253, windows-1254, windows-1255, windows-1256, windows-1257, windows-1258, windows-31j, x-big5-hkscs-2001, x-big5-solaris, x-compound_text, x-euc-jp-linux, x-euc-tw, x-eucjp-open, x-ibm1006, x-ibm1025, x-ibm1046, x-ibm1097, x-ibm1098, x-ibm1112, x-ibm1122, x-ibm1123, x-ibm1124, x-ibm1166, x-ibm1364, x-ibm1381, x-ibm1383, x-ibm300, x-ibm33722, x-ibm737, x-ibm833, x-ibm834, x-ibm856, x-ibm874, x-ibm875, x-ibm921, x-ibm922, x-ibm930, x-ibm933, x-ibm935, x-ibm937, x-ibm939, x-ibm942, x-ibm942c, x-ibm943, x-ibm943c, x-ibm948, x-ibm949, x-ibm949c, x-ibm950, x-ibm964, x-ibm970, x-iscii91, x-iso-2022-cn-cns, x-iso-2022-cn-gb, x-iso-8859-11, x-jis0208, x-jisautodetect, x-johab, x-macarabic, x-maccentraleurope, x-maccroatian, x-maccyrillic, x-macdingbat, x-macgreek, x-machebrew, x-maciceland, x-macroman, x-macromania, x-macsymbol, x-macthai, x-macturkish, x-macukraine, x-ms932_0213, x-ms950-hkscs, x-ms950-hkscs-xp, x-mswin-936, x-pck, x-sjis_0213, x-utf-16le-bom, x-utf-32be-bom, x-utf-32le-bom, x-windows-50220, x-windows-50221, x-windows-874, x-windows-949, x-windows-950, x-windows-iso2022jp",
+							"name": "Accept-Charset",
+							"description": "Custom header"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Length",
+							"value": "63378",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json;charset=UTF-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 23 May 2018 21:21:14 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "yodlee-ref-id",
+							"value": "a1527110473865d4v26i000000NLqYG",
+							"name": "yodlee-ref-id",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Invalid Date",
+							"httpOnly": false,
+							"domain": "yodlee.com",
+							"path": "/",
+							"secure": false,
+							"value": "SW9+hlNJSXiz1PkdNqeVzRhd/FoAAAAAQUIPAAAAAABwOgNsjIPCvyxrV3b9RxMs",
+							"key": "visid_incap_1070612"
+						},
+						{
+							"expires": "Invalid Date",
+							"httpOnly": false,
+							"domain": "yodlee.com",
+							"path": "/",
+							"secure": false,
+							"value": "WMPRZHscQWJsMu0jp5lEDBld/FoAAAAAGUOp/A36oel8YIYspWFQ8w==",
+							"key": "incap_ses_884_1070612"
+						},
+						{
+							"expires": "Invalid Date",
+							"httpOnly": true,
+							"domain": "developer.api.yodlee.com",
+							"path": "/ysl",
+							"secure": true,
+							"value": "TFdCarXrkemscJAK0siBgAgTvRqYq_9ljLFl6SlJ.hpdl-r306-25",
+							"key": "JSESSIONID"
+						},
+						{
+							"expires": "Invalid Date",
+							"httpOnly": true,
+							"domain": "developer.api.yodlee.com",
+							"path": "/",
+							"secure": true,
+							"value": "J-jzNUYyJ2TMfTmyHfxnU0qQ9AYfNlPRuIjdPSpC.hpdl-r306-25",
+							"key": "JSESSIONID"
+						}
+					],
+					"body": "{\"transaction\":[{\"CONTAINER\":\"bank\",\"id\":87774437,\"amount\":{\"amount\":3465,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"INCOME\",\"categoryId\":32,\"category\":\"Other Income\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000012,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-23T21:20:43Z\",\"description\":{\"original\":\"DESC\",\"consumer\":\"Electronic Purchases\",\"simple\":\"DESC\"},\"type\":\"OTHER_DEPOSITS\",\"subType\":\"CREDIT\",\"isManual\":false,\"date\":\"2017-03-16\",\"transactionDate\":\"2017-03-16\",\"postDate\":\"2017-03-16\",\"memo\":\"acsd\",\"status\":\"POSTED\",\"accountId\":11618226,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"DAG-133\"},{\"CONTAINER\":\"bank\",\"id\":87774435,\"amount\":{\"amount\":59,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":33,\"category\":\"Check Payment\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-15T20:30:16Z\",\"description\":{\"original\":\"CHECK # 998\",\"simple\":\"Payment by Check\"},\"type\":\"PAYMENT\",\"subType\":\"PAYMENT_BY_CHECK\",\"isManual\":false,\"date\":\"2017-03-16\",\"transactionDate\":\"2016-10-16\",\"postDate\":\"2017-03-16\",\"status\":\"POSTED\",\"accountId\":11618225,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"998\"},{\"CONTAINER\":\"bank\",\"id\":87774439,\"amount\":{\"amount\":3103,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":19,\"category\":\"Other Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-15T20:30:16Z\",\"description\":{\"original\":\"DESC\",\"simple\":\"DESC\"},\"type\":\"OTHER_WITHDRAWALS\",\"subType\":\"DEBIT\",\"isManual\":false,\"date\":\"2017-03-14\",\"transactionDate\":\"2017-03-12\",\"postDate\":\"2017-03-14\",\"status\":\"POSTED\",\"accountId\":11618226,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"DAG-333\"},{\"CONTAINER\":\"bank\",\"id\":87774440,\"amount\":{\"amount\":5646,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"INCOME\",\"categoryId\":32,\"category\":\"Other Income\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000012,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-15T20:30:16Z\",\"description\":{\"original\":\"DESC\",\"simple\":\"DESC\"},\"type\":\"OTHER_DEPOSITS\",\"subType\":\"CREDIT\",\"isManual\":false,\"date\":\"2017-03-10\",\"transactionDate\":\"2017-03-11\",\"postDate\":\"2017-03-10\",\"status\":\"POSTED\",\"accountId\":11618226,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"DAG-233\"},{\"CONTAINER\":\"bank\",\"id\":87774438,\"amount\":{\"amount\":9846,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"INCOME\",\"categoryId\":32,\"category\":\"Other Income\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000012,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-15T20:30:16Z\",\"description\":{\"original\":\"DESC\",\"simple\":\"DESC\"},\"type\":\"OTHER_DEPOSITS\",\"subType\":\"CREDIT\",\"isManual\":false,\"date\":\"2017-03-02\",\"transactionDate\":\"2017-03-16\",\"postDate\":\"2017-03-02\",\"status\":\"POSTED\",\"accountId\":11618226,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"DAG-333\"},{\"CONTAINER\":\"bank\",\"id\":87774436,\"amount\":{\"amount\":343465,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"INCOME\",\"categoryId\":32,\"category\":\"Other Income\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000012,\"createdDate\":\"2018-05-15T20:30:16Z\",\"lastUpdated\":\"2018-05-15T20:30:16Z\",\"description\":{\"original\":\"DESC\",\"simple\":\"DESC\"},\"type\":\"OTHER_DEPOSITS\",\"subType\":\"CREDIT\",\"isManual\":false,\"date\":\"2016-10-16\",\"transactionDate\":\"2016-10-16\",\"postDate\":\"2016-10-16\",\"status\":\"POSTED\",\"accountId\":11618225,\"runningBalance\":{\"amount\":59,\"currency\":\"USD\"},\"checkNumber\":\"DAG-333\"},{\"CONTAINER\":\"creditCard\",\"id\":37142356,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-17\",\"postDate\":\"2014-01-17\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142357,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2014-01-16\",\"postDate\":\"2014-01-16\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142358,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-15\",\"postDate\":\"2014-01-15\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142359,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-14\",\"postDate\":\"2014-01-14\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142360,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-13\",\"postDate\":\"2014-01-13\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142361,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2014-01-12\",\"postDate\":\"2014-01-12\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142362,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2014-01-11\",\"postDate\":\"2014-01-11\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142363,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-10\",\"postDate\":\"2014-01-10\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142364,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2014-01-09\",\"postDate\":\"2014-01-09\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142365,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-08\",\"postDate\":\"2014-01-08\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142366,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2014-01-07\",\"postDate\":\"2014-01-07\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142367,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-06\",\"postDate\":\"2014-01-06\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142368,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2014-01-05\",\"postDate\":\"2014-01-05\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142369,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-04\",\"postDate\":\"2014-01-04\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142370,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-03\",\"postDate\":\"2014-01-03\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142371,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2014-01-02\",\"postDate\":\"2014-01-02\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142372,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2014-01-01\",\"postDate\":\"2014-01-01\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142373,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-12-30\",\"postDate\":\"2013-12-30\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142374,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-29\",\"postDate\":\"2013-12-29\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142375,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-28\",\"postDate\":\"2013-12-28\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142376,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-27\",\"postDate\":\"2013-12-27\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142377,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-26\",\"postDate\":\"2013-12-26\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142378,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-25\",\"postDate\":\"2013-12-25\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142379,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-12-24\",\"postDate\":\"2013-12-24\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142380,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-23\",\"postDate\":\"2013-12-23\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142381,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-22\",\"postDate\":\"2013-12-22\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142382,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-21\",\"postDate\":\"2013-12-21\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142383,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-12-20\",\"postDate\":\"2013-12-20\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142384,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-12-19\",\"postDate\":\"2013-12-19\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142385,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-18\",\"postDate\":\"2013-12-18\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142386,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-16\",\"postDate\":\"2013-12-16\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142387,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-15\",\"postDate\":\"2013-12-15\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142388,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-14\",\"postDate\":\"2013-12-14\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142389,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-13\",\"postDate\":\"2013-12-13\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142390,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-12-12\",\"postDate\":\"2013-12-12\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142391,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-11\",\"postDate\":\"2013-12-11\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142392,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-10\",\"postDate\":\"2013-12-10\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142393,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-09\",\"postDate\":\"2013-12-09\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142394,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-12-08\",\"postDate\":\"2013-12-08\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142395,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-12-07\",\"postDate\":\"2013-12-07\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142396,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-06\",\"postDate\":\"2013-12-06\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142397,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-05\",\"postDate\":\"2013-12-05\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142398,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-04\",\"postDate\":\"2013-12-04\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142399,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-12-03\",\"postDate\":\"2013-12-03\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142400,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-12-02\",\"postDate\":\"2013-12-02\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142401,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-12-01\",\"postDate\":\"2013-12-01\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142403,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-30\",\"postDate\":\"2013-11-30\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142402,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-30\",\"postDate\":\"2013-11-30\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142404,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-29\",\"postDate\":\"2013-11-29\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142405,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-11-28\",\"postDate\":\"2013-11-28\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142406,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-11-27\",\"postDate\":\"2013-11-27\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142407,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-26\",\"postDate\":\"2013-11-26\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142408,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-11-25\",\"postDate\":\"2013-11-25\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142409,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-24\",\"postDate\":\"2013-11-24\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142410,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-11-23\",\"postDate\":\"2013-11-23\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142411,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-22\",\"postDate\":\"2013-11-22\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142412,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-11-21\",\"postDate\":\"2013-11-21\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142413,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-20\",\"postDate\":\"2013-11-20\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142414,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-19\",\"postDate\":\"2013-11-19\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142415,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-18\",\"postDate\":\"2013-11-18\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142416,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-11-16\",\"postDate\":\"2013-11-16\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142417,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-11-15\",\"postDate\":\"2013-11-15\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142418,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-14\",\"postDate\":\"2013-11-14\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142419,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-11-13\",\"postDate\":\"2013-11-13\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142420,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-12\",\"postDate\":\"2013-11-12\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142421,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-11-11\",\"postDate\":\"2013-11-11\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142422,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-10\",\"postDate\":\"2013-11-10\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142423,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-11-09\",\"postDate\":\"2013-11-09\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142424,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-08\",\"postDate\":\"2013-11-08\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142425,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-07\",\"postDate\":\"2013-11-07\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142426,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-06\",\"postDate\":\"2013-11-06\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142427,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-11-05\",\"postDate\":\"2013-11-05\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142428,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-11-04\",\"postDate\":\"2013-11-04\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142429,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-03\",\"postDate\":\"2013-11-03\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142430,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-11-02\",\"postDate\":\"2013-11-02\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142431,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-11-01\",\"postDate\":\"2013-11-01\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142432,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-10-31\",\"postDate\":\"2013-10-31\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142433,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-30\",\"postDate\":\"2013-10-30\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142434,\"amount\":{\"amount\":180.89,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AMAZON MKTPLACE PMTS\",\"simple\":\"Amazon\"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-10-29\",\"postDate\":\"2013-10-29\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"amazonus\",\"name\":\"Amazon\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142435,\"amount\":{\"amount\":101.07,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":7,\"category\":\"Entertainment/Recreation\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"BLOCKBUSTEREXPRESS\",\"simple\":\"Blockbusters\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-28\",\"postDate\":\"2013-10-28\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"blockbustersus\",\"name\":\"Blockbusters\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Entertainment/Recreation\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142436,\"amount\":{\"amount\":20,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":22,\"category\":\"Restaurants\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"McDonalds\",\"simple\":\"Mcdonald's\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-27\",\"postDate\":\"2013-10-27\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"mcdonald'sus\",\"name\":\"Mcdonald'S\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Restaurants\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142437,\"amount\":{\"amount\":2500,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":13,\"category\":\"Home Improvement\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Furniture Purchase\",\"simple\":\"Furniture 1\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-26\",\"postDate\":\"2013-10-26\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"furniture1us\",\"name\":\"Furniture 1\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Home Improvement\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142438,\"amount\":{\"amount\":1000,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Online Purchase\",\"simple\":\"Online \"},\"type\":\"PURCHASE\",\"subType\":\"ONLINE_PURCHASE\",\"isManual\":false,\"date\":\"2013-10-25\",\"postDate\":\"2013-10-25\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142439,\"amount\":{\"amount\":10,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":24,\"category\":\"Service Charges/Fees\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000009,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Service Charges\",\"simple\":\"Service Charge\"},\"type\":\"CHARGES_FEES\",\"subType\":\"SERVICE_CHARGE\",\"isManual\":false,\"date\":\"2013-10-24\",\"postDate\":\"2013-10-24\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"servicecareus\",\"name\":\"Service Care\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Service Charges/Fees\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142440,\"amount\":{\"amount\":110.01,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":2,\"category\":\"Truck Expenses\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000003,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"SHELL OIL\",\"simple\":\"Shell\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-23\",\"postDate\":\"2013-10-23\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"shellus\",\"name\":\"Shell\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Automotive/Fuel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142441,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":15,\"category\":\"Cable/Satellite/Telecom\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Telephone Bill Paid\",\"simple\":\"Telephone Jacks\"},\"type\":\"PAYMENT\",\"subType\":\"RECURRING_SUBSCRIPTION_PAYMENT\",\"isManual\":false,\"date\":\"2013-10-22\",\"postDate\":\"2013-10-22\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"telephonejacksus\",\"name\":\"Telephone Jacks\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Cable/Satellite/Telecom\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142442,\"amount\":{\"amount\":124.72,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":43,\"category\":\"Electronics/General Merchandise\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000004,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"WAL-MART\",\"simple\":\"Walmart\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-21\",\"postDate\":\"2013-10-21\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"walmartus\",\"name\":\"Walmart\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Electronics/General Merchandise\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}},{\"CONTAINER\":\"creditCard\",\"id\":37142443,\"amount\":{\"amount\":200,\"currency\":\"USD\"},\"baseType\":\"CREDIT\",\"categoryType\":\"TRANSFER\",\"categoryId\":26,\"category\":\"Credit Card Payments\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000018,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"Payment - Thank You\",\"simple\":\"Credit Card Payment\"},\"type\":\"PAYMENT\",\"subType\":\"CREDIT_CARD_PAYMENT\",\"isManual\":false,\"date\":\"2013-10-20\",\"postDate\":\"2013-10-20\",\"status\":\"POSTED\",\"accountId\":11618180},{\"CONTAINER\":\"creditCard\",\"id\":37142444,\"amount\":{\"amount\":101,\"currency\":\"USD\"},\"baseType\":\"DEBIT\",\"categoryType\":\"EXPENSE\",\"categoryId\":23,\"category\":\"Travel\",\"categorySource\":\"SYSTEM\",\"highLevelCategoryId\":10000011,\"createdDate\":\"2018-05-15T20:30:22Z\",\"lastUpdated\":\"2018-05-15T20:30:22Z\",\"description\":{\"original\":\"AIR VALET\",\"simple\":\"Air Valet\"},\"type\":\"PURCHASE\",\"subType\":\"PURCHASE\",\"isManual\":false,\"date\":\"2013-10-19\",\"postDate\":\"2013-10-19\",\"status\":\"POSTED\",\"accountId\":11618180,\"merchant\":{\"id\":\"airvaletus\",\"name\":\"Air Valet\",\"source\":\"FACTUAL\",\"categoryLabel\":[\"Travel\"],\"address\":{\"country\":\"US\"},\"coordinates\":{\"latitude\":0.0,\"longitude\":0.0}}}]}"
+				}
+			]
+		},
+		{
+			"name": "User Register",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "61dd4d80-8a63-4e26-ba9a-a60ae38d087d",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "4ac0442d-6996-47fe-9098-6bce890413df",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "1.1"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"user\": {\r\n  \"loginName\": \"{{userName}}\", \r\n  \"email\": \"atom@alien.com\", \r\n  \"name\": {\r\n    \"first\": \"Real\",\r\n    \"last\": \"Steel\" \r\n    },\r\n\"address\": {\r\n    \"address1\": \"200 Lincoln Ave\",\r\n    \"state\": \"CA\",\r\n    \"city\": \"Salinas\",\r\n    \"zip\": \"93901\",\r\n    \"country\": \"USA\"\r\n    },\r\n\"preferences\": {\r\n    \"currency\": \"USD\",\r\n    \"timeZone\": \"GMT\",\r\n    \"dateFormat\": \"YYYY-MMM-DD\",\r\n    \"locale\": \"en_US\"\r\n    }\r\n  }\r\n}"
+				},
+				"url": {
+					"raw": "{{host}}user/register",
+					"host": [
+						"{{host}}user"
+					],
+					"path": [
+						"register"
+					]
+				},
+				"description": "This is an optional endpoint for Sandbox, it is used to register a new user into the Yodlee system."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "43b9701a-f823-4c80-9cd7-e060817957a2",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "bca969c8-b175-4d81-9da6-04943565fe3a",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
