@@ -34,7 +34,7 @@ pipeline {
         }
       }
     }
-    stage('Run postman') {
+    stage('Run Tests') {
       parallel {
         stage('Run postman') {
           steps {
@@ -45,6 +45,10 @@ pipeline {
         stage('Appium') {
           steps {
             sleep 4
+            dir(path: 'C:\\Users\\guyar\\ws1\\PostmanPipeline') {
+              sh 'gradlew --info test --rerun-tasks'
+            }
+
           }
         }
       }
