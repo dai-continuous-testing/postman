@@ -46,7 +46,6 @@ pipeline {
           steps {
             powershell 'copy C:\\Users\\guyar\\Desktop\\postman1\\cloud.properties .'
             powershell 'set GRADLE_USER_HOME="c:\\Program Files (x86)\\gradle-4.4-rc-6";./gradlew --info test --rerun-tasks'
-            junit 'build/test-results/test/*.xml'
           }
         }
       }
@@ -55,6 +54,7 @@ pipeline {
   post {
 	always {
 		junit 'build/test-results/**/*.xml'
+		junit 'newman/**/*.xml'
 	}
   }
 }
