@@ -39,7 +39,7 @@ pipeline {
         stage('Run postman') {
           steps {
             powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .\\postman'
-            powershell 'newman run ./postman/collectionYodlee.json -e ./postman/environmentYodlee.json'
+            powershell 'newman run ./postman/collectionYodlee.json -e ./postman/environmentYodlee.json --reporters junit'
           }
         }
         stage('Appium') {
@@ -52,9 +52,11 @@ pipeline {
     }
   }
   post {
-	always {
-		junit 'build/test-results/**/*.xml'
-		junit 'newman/**/*.xml'
-	}
+    always {
+      junit 'build/test-results/**/*.xml'
+      junit 'newman/**/*.xml'
+
+    }
+
   }
 }
