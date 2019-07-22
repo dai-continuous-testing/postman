@@ -40,7 +40,6 @@ pipeline {
           steps {
             powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .'
             powershell 'newman run collectionYodlee.json -e environmentYodlee.json'
-            junit 'test-output/*'
           }
         }
         stage('Appium') {
