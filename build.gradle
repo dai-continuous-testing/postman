@@ -1,0 +1,43 @@
+group 'com.experitest'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+	maven {
+		url "https://cloud.experitest.com/repo/"
+	}
+}
+
+eclipse {
+    classpath {
+        downloadJavadoc = true
+    }
+}
+
+clean.dependsOn "cleanEclipse"
+build.dependsOn "eclipse"
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+dependencies {
+	compile 'org.testng:testng:6.9.10'
+	compile 'io.appium:java-client:6.1.0'
+	compile 'com.experitest:repo:+'
+}
+
+test {
+	useTestNG() {
+		suites './testng.xml'
+	}
+}
