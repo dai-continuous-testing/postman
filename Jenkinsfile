@@ -38,8 +38,8 @@ pipeline {
       parallel {
         stage('Run postman') {
           steps {
-            powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .'
-            powershell 'newman run collectionYodlee.json -e environmentYodlee.json'
+            powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .\\postman'
+            powershell 'newman run ./postman/collectionYodlee.json -e ./postman/environmentYodlee.json'
           }
         }
         stage('Appium') {
