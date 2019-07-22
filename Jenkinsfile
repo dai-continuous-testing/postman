@@ -45,7 +45,7 @@ pipeline {
         stage('Appium') {
           steps {
             powershell 'copy C:\\Users\\guyar\\Desktop\\postman1\\cloud.properties .'
-            sh './gradlew --info test --rerun-tasks'
+            powershell 'gradlew --info test --rerun-tasks'
           }
         }
       }
