@@ -48,6 +48,16 @@ pipeline {
             powershell 'set GRADLE_USER_HOME="c:\\Program Files (x86)\\gradle-4.4-rc-6";./gradlew --info test --rerun-tasks'
           }
         }
+        stage('Performance') {
+          steps {
+            sleep 10
+          }
+        }
+        stage('Unit') {
+          steps {
+            sleep 10
+          }
+        }
       }
     }
   }
