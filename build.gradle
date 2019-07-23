@@ -38,6 +38,6 @@ dependencies {
 
 test {
 	useTestNG() {
-		suites './testng.xml'
+		suites './fast_feedback.xml'
 	}
 }
