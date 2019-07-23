@@ -31,7 +31,7 @@ public class AndroidDemoTest4 extends BaseTest {
 		Thread.sleep(3000);
 	}
 	
-	@Test(retryAnalyzer=RetryAnalyzer.class)
+	@Test
 	public void test1(){
 		driver.findElement(By.xpath("//*[@id='usernameTextField']")).sendKeys("company");
 		driver.findElement(By.xpath("//*[@id='passwordTextField']")).sendKeys("company");

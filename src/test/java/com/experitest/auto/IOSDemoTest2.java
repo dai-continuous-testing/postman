@@ -14,7 +14,7 @@ import io.appium.java_client.ios.IOSElement;
 import io.appium.java_client.remote.IOSMobileCapabilityType;
 import io.appium.java_client.remote.MobileCapabilityType;
 
-public class IOSDemoTest extends BaseTest {
+public class IOSDemoTest2 extends BaseTest {
 	protected IOSDriver<IOSElement> driver = null;
 
 	@BeforeMethod
