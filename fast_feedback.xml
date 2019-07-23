@@ -2,7 +2,6 @@
 <suite name="Test-class Suite" parallel="classes" thread-count="20" >
   <test name="Test-class test" >
     <classes>
-      <class name="com.experitest.auto.AndroidDemoTest" />
       <class name="com.experitest.auto.AndroidDemoTest2" />
       <class name="com.experitest.auto.AndroidDemoTest3" />
       <class name="com.experitest.auto.AndroidDemoTest4" />
