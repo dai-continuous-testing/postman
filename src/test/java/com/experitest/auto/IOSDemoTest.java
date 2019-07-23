@@ -2,6 +2,7 @@ package com.experitest.auto;
 
 import java.net.URL;
 
+import org.openqa.selenium.By;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
@@ -23,13 +24,17 @@ public class IOSDemoTest extends BaseTest {
 		// Init application / device capabilities
 		//dc.setCapability(MobileCapabilityType.APP, "cloud:com.experitest.ExperiBank");
 		//dc.setCapability(IOSMobileCapabilityType.BUNDLE_ID, "com.experitest.ExperiBank");
+
 		dc.setCapability("testName", "IOSDemoTest");
 		driver = new IOSDriver<>(new URL(getProperty("url",cloudProperties) + "/wd/hub"), dc);
 	}
 
 	@Test
 	public void test() {
-		// Enter the test code
+		driver.findElement(By.xpath("//*[@accessibilityLabel='usernameTextField']")).sendKeys("company");
+		driver.findElement(By.xpath("//*[@accessibilityLabel='passwordTextField']")).sendKeys("company");
+		driver.findElement(By.xpath("//*[@text='loginButton']")).click();
+
 
 	}
 

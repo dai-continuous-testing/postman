@@ -37,8 +37,6 @@ public class BaseTest {
 	protected String getProperty(String property, Properties props) {
 		if (System.getProperty(property) != null) {
 			return System.getProperty(property);
-		} else if (System.getenv().containsKey(property)) {
-			return System.getenv(property);
 		} else if (props != null) {
 			return props.getProperty(property);
 		}

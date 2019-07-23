@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Test-class Suite" parallel="classes" thread-count="10" >
+  <test name="Test-class test" >
+    <classes>
+      <class name="com.experitest.auto.AndroidDemoTest" />
+      <class name="com.experitest.auto.AndroidDemoTest2" />
+      <class name="com.experitest.auto.AndroidDemoTest3" />
+      <class name="com.experitest.auto.AndroidDemoTest4" />
+      <class name="com.experitest.auto.AndroidDemoTest5" />
+      <class name="com.experitest.auto.AndroidDemoTest6" />
+      <class name="com.experitest.auto.AndroidDemoTest7" />
+      <class name="com.experitest.auto.AndroidDemoTest8" />
+      <class name="com.experitest.auto.AndroidDemoTest9" />
+      <class name="com.experitest.auto.AndroidDemoTest10" />
+    </classes>
+  </test>
+</suite>

@@ -15,7 +15,7 @@ import io.appium.java_client.remote.AndroidMobileCapabilityType;
 import io.appium.java_client.remote.MobileCapabilityType;
 
 
-public class AndroidDemoTest extends BaseTest {
+public class AndroidDemoTest4 extends BaseTest {
 	protected AndroidDriver<AndroidElement> driver = null;
 	
 	@BeforeMethod
@@ -38,6 +38,7 @@ public class AndroidDemoTest extends BaseTest {
 		driver.findElement(By.xpath("//*[@text='Login']")).click();
 		driver.findElement(By.xpath("//*[@text='Make Payment']"));
 	}
+	@Test
 	@AfterMethod
 	public void tearDown(){
 		driver.quit();

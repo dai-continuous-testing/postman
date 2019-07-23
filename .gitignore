@@ -6,3 +6,6 @@ test-output/
 cloud.properties
 .project
 .classpath
+out/
+.idea/
+PostmanPipeline.iml
