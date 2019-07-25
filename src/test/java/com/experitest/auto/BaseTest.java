@@ -13,6 +13,7 @@ public class BaseTest {
 	protected Properties cloudProperties = new Properties();
 
 	public void init(String deviceQuery) throws Exception {
+		System.err.println(System.getenv());
 		initCloudProperties();
 		String adhocDeviceQuery = System.getenv("deviceQuery");
 		if (adhocDeviceQuery != null) {
