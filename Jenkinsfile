@@ -36,21 +36,10 @@ pipeline {
     }
     stage('Run Tests') {
       parallel {
-        stage('Run postman') {
-          steps {
-            powershell 'copy c:\\Users\\guyar\\Desktop\\postman\\environmentYodlee.json .\\postman'
-            powershell 'newman run ./postman/collectionYodlee.json -e ./postman/environmentYodlee.json --reporters junit'
-          }
-        }
         stage('Appium') {
           steps {
             powershell 'copy C:\\Users\\guyar\\Desktop\\postman1\\cloud.properties .'
             powershell 'set GRADLE_USER_HOME="c:\\Program Files (x86)\\gradle-4.4-rc-6";./gradlew --info clean test --rerun-tasks'
-          }
-        }
-        stage('Performance') {
-          steps {
-            sleep 10
           }
         }
         stage('Unit') {
@@ -58,6 +47,11 @@ pipeline {
             sleep 10
           }
         }
+      }
+    }
+    stage('Performance') {
+      steps {
+        sleep 5
       }
     }
   }
